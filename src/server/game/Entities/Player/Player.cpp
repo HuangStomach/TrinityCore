@@ -16943,8 +16943,14 @@ void Player::SendQuestReward(Quest const* quest, Creature const* questGiver, uin
     {
         if (questGiver->IsGossip())
             packet.LaunchGossip = true;
-        else if (questGiver->IsQuestGiver() && GetQuestDialogStatus(questGiver) > QuestGiverStatus::TrivialDailyQuest)
-            packet.LaunchQuest = true;
+        else if (questGiver->IsQuestGiver()) 
+        {
+            QuestGiverStatus status = GetQuestDialogStatus(questGiver);
+            QuestGiverStatus mask = QuestGiverStatus::None | QuestGiverStatus::Future | QuestGiverStatus::Trivial | QuestGiverStatus::TrivialRepeatableTurnin | QuestGiverStatus::TrivialDailyQuest;
+
+            if ((status & mask) != status)
+                packet.LaunchQuest = true;
+        } 
         else if (quest->GetNextQuestInChain() && !quest->HasFlag(QUEST_FLAGS_AUTOCOMPLETE))
             if (Quest const* rewardQuest = sObjectMgr->GetQuestTemplate(quest->GetNextQuestInChain()))
                 packet.UseQuestReward = CanTakeQuest(rewardQuest, false);
